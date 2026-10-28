@@ -1,5 +1,11 @@
 import { AppError } from "../errors/AppError.js";
 
+const PG_ERRORS = {
+    "23505": { status: 409, code: "UNIQUE_VIOLATION", message: "Resource already exists" },
+    "23503": { status: 409, code: "FOREIGN_KEY_VIOLATION", message: "Related resource does not exist or is still in use" },
+    "23514": { status: 400, code: "CHECK_VIOLATION", message: "Data violates a database rule" }
+};
+
 export function errorHandler(err, req, res, next) {
     if (err instanceof AppError) {
         return res.status(err.statusCode).json({
@@ -15,6 +21,14 @@ export function errorHandler(err, req, res, next) {
     if (err.type === "entity.parse.failed") {
         return res.status(400).json({
             error: { code: "INVALID_JSON", message: "Request body is not valid JSON", requestId: req.id }
+        });
+    }
+
+    const pgError = Object.hasOwn(PG_ERRORS, err.code) ? PG_ERRORS[err.code] : null;
+    if (pgError) {
+        console.warn(`[${req.id}] PostgreSQL ${err.code} (${err.constraint ?? "-"})`);
+        return res.status(pgError.status).json({
+            error: { code: pgError.code, message: pgError.message, requestId: req.id }
         });
     }
 

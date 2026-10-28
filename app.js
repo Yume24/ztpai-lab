@@ -9,22 +9,17 @@ import { ReservationsService } from "./modules/reservations/reservations.service
 import { createReservationsController } from "./modules/reservations/reservations.controller.js";
 import { createReservationsRouter } from "./modules/reservations/reservations.routes.js";
 
-export function createApp({ roomsRepository, reservationsRepository, now }) {
+export function createApp({ runInTransaction, now }) {
     const app = express();
 
     app.use(requestLogger);
     app.use(express.json());
 
-    const roomsService = new RoomsService({ roomsRepository });
-    const reservationsService = new ReservationsService({ reservationsRepository, roomsRepository, now });
+    const roomsService = new RoomsService({ runInTransaction });
+    const reservationsService = new ReservationsService({ runInTransaction, now });
 
     app.use("/api/rooms", createRoomsRouter(createRoomsController(roomsService)));
     app.use("/api/reservations", createReservationsRouter(createReservationsController(reservationsService)));
-
-    // TEMPORARY (zadanie 3): endpoint do pokazania obsługi błędu 500 - do usunięcia po oddaniu.
-    app.get("/api/debug/crash", () => {
-        throw new Error("boom");
-    });
 
     app.use(notFound);
     app.use(errorHandler);

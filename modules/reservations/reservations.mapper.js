@@ -1,10 +1,14 @@
 const toIso = value => (value ? new Date(value).toISOString() : null);
 
-// Whitelist pól - m.in. internalNote nigdy nie trafia do odpowiedzi API.
 export function toReservationResponse(reservation) {
+    const { room } = reservation;
     return {
         id: reservation.id,
-        roomId: reservation.roomId,
+        room: {
+            id: room.id,
+            name: room.name,
+            building: { id: room.building.id, name: room.building.name }
+        },
         reservedBy: reservation.reservedBy,
         participants: reservation.participants,
         startTime: toIso(reservation.startTime),

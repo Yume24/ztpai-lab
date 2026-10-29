@@ -7,6 +7,11 @@ export function createReservationsController(reservationsService) {
             res.json(reservations.map(toReservationResponse));
         },
 
+        async getById(req, res) {
+            const reservation = await reservationsService.getReservation(req.validated.params.id);
+            res.json(toReservationResponse(reservation));
+        },
+
         async create(req, res) {
             const reservation = await reservationsService.createReservation(req.validated.body);
             res.status(201)

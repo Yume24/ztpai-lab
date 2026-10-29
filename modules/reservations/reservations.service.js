@@ -66,6 +66,14 @@ export class ReservationsService {
         return this.runInTransaction(({ reservationsRepository }) => reservationsRepository.findReservations(filters));
     }
 
+    async getReservation(id) {
+        return this.runInTransaction(async ({ reservationsRepository }) => {
+            const reservation = await reservationsRepository.getReservationById(id);
+            if (!reservation) throw new NotFoundError("Reservation");
+            return reservation;
+        });
+    }
+
     async cancelReservation(id) {
         return this.runInTransaction(async ({ reservationsRepository }) => {
             const reservation = await reservationsRepository.getReservationById(id);

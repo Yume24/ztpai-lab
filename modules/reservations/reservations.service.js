@@ -62,8 +62,14 @@ export class ReservationsService {
         });
     }
 
-    async listReservations(filters) {
-        return this.runInTransaction(({ reservationsRepository }) => reservationsRepository.findReservations(filters));
+    async listReservations(query) {
+        return this.runInTransaction(async ({ reservationsRepository }) => {
+            const { items, total } = await reservationsRepository.listReservations(query);
+            return {
+                items,
+                meta: { page: query.page, limit: query.limit, total, totalPages: Math.ceil(total / query.limit) }
+            };
+        });
     }
 
     async getReservation(id) {

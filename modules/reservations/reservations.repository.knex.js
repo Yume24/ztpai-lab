@@ -9,6 +9,12 @@ const COLUMNS = {
     cancelledAt: "cancelled_at"
 };
 
+const SORT_COLUMNS = {
+    startTime: "res.start_time",
+    createdAt: "res.created_at",
+    participants: "res.participants"
+};
+
 function toColumns(data) {
     return Object.fromEntries(
         Object.entries(data)
@@ -75,6 +81,25 @@ export class KnexReservationsRepository {
             .orderBy("res.start_time", "asc")
             .orderBy("res.id", "asc");
         return rows.map(toReservation);
+    }
+
+    async listReservations({ page, limit, sort, ...filters }) {
+        const filtered = this.#joined().modify(applyFilters, filters);
+
+        const desc = sort.startsWith("-");
+        const column = SORT_COLUMNS[desc ? sort.slice(1) : sort];
+        if (!column) throw new Error(`Unsupported sort: ${sort}`);
+
+        const [rows, { count }] = await Promise.all([
+            this.#selectJoined(filtered.clone())
+                .orderBy(column, desc ? "desc" : "asc")
+                .orderBy("res.id", "asc")
+                .limit(limit)
+                .offset((page - 1) * limit),
+            filtered.clone().count({ count: "*" }).first()
+        ]);
+
+        return { items: rows.map(toReservation), total: Number(count) };
     }
 
     async updateReservation(id, changes) {

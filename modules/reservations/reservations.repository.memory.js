@@ -41,6 +41,20 @@ export class InMemoryReservationsRepository {
             .map(r => this.#withRoom(r));
     }
 
+    async listReservations({ page, limit, sort, ...filters }) {
+        const desc = sort.startsWith("-");
+        const field = desc ? sort.slice(1) : sort;
+        const direction = desc ? -1 : 1;
+
+        const matching = this.#matching(filters)
+            .sort((a, b) => (a[field] - b[field]) * direction || a.id - b.id);
+
+        return {
+            items: matching.slice((page - 1) * limit, page * limit).map(r => this.#withRoom(r)),
+            total: matching.length
+        };
+    }
+
     async updateReservation(id, changes) {
         return this.#withRoom(Object.assign(this.store.reservations.get(id), changes));
     }

@@ -3,7 +3,9 @@ import { AppError } from "../errors/AppError.js";
 const PG_ERRORS = {
     "23505": { status: 409, code: "UNIQUE_VIOLATION", message: "Resource already exists" },
     "23503": { status: 409, code: "FOREIGN_KEY_VIOLATION", message: "Related resource does not exist or is still in use" },
-    "23514": { status: 400, code: "CHECK_VIOLATION", message: "Data violates a database rule" }
+    "23514": { status: 400, code: "CHECK_VIOLATION", message: "Data violates a database rule" },
+    "23P01": { status: 409, code: "ROOM_ALREADY_BOOKED", message: "Room is already booked in the requested time range" },
+    "40P01": { status: 409, code: "CONCURRENT_CONFLICT", message: "Request conflicted with a concurrent operation" }
 };
 
 export function errorHandler(err, req, res, next) {

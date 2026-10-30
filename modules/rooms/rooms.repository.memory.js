@@ -34,6 +34,8 @@ export class InMemoryRoomsRepository {
         this.store.rooms.set(room.id, room);
         return this.#withBuilding(room);
     }
+
+    async lockRoomById() {}
 }
 
 function nextId(map) {

@@ -41,4 +41,8 @@ export class KnexRoomsRepository {
             .returning("id");
         return this.getRoomById(id);
     }
+
+    async lockRoomById(id) {
+        await this.db("rooms").where({ id }).select("id").forUpdate();
+    }
 }

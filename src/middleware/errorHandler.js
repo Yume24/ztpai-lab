@@ -8,6 +8,16 @@ const PG_ERRORS = {
     "40P01": { status: 409, code: "CONCURRENT_CONFLICT", message: "Request conflicted with a concurrent operation" }
 };
 
+const PG_CONSTRAINTS = {
+    users_email_unique: { status: 409, code: "EMAIL_TAKEN", message: "Email already registered" }
+};
+
+function findPgError(err) {
+    if (Object.hasOwn(PG_CONSTRAINTS, err.constraint)) return PG_CONSTRAINTS[err.constraint];
+    if (Object.hasOwn(PG_ERRORS, err.code)) return PG_ERRORS[err.code];
+    return null;
+}
+
 export function errorHandler(err, req, res, next) {
     if (err instanceof AppError) {
         return res.status(err.statusCode).json({
@@ -26,7 +36,7 @@ export function errorHandler(err, req, res, next) {
         });
     }
 
-    const pgError = Object.hasOwn(PG_ERRORS, err.code) ? PG_ERRORS[err.code] : null;
+    const pgError = findPgError(err);
     if (pgError) {
         console.warn(`[${req.id}] PostgreSQL ${err.code} (${err.constraint ?? "-"})`);
         return res.status(pgError.status).json({

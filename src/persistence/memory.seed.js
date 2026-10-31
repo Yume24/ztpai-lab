@@ -1,7 +1,15 @@
-export function createMemorySeed() {
+import { hashPassword } from "../modules/auth/password.js";
+
+export async function createMemorySeed() {
     const at = iso => new Date(iso);
 
     return {
+        users: [
+            {
+                id: 1, email: "admin@example.com", passwordHash: await hashPassword("admin-password-123"),
+                role: "ADMIN", createdAt: at("2026-10-01T08:00:00Z")
+            }
+        ],
         buildings: [
             { id: 1, name: "Budynek A", address: "ul. Warszawska 24, Kraków", createdAt: at("2026-10-01T08:00:00Z") },
             { id: 2, name: "Budynek B", address: "ul. Podchorążych 2, Kraków", createdAt: at("2026-10-01T08:00:00Z") },

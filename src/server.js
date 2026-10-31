@@ -8,7 +8,7 @@ const PORT = 8000;
 const STORAGE = process.env.STORAGE === "memory" ? "memory" : "postgres";
 
 const unitOfWork = STORAGE === "memory"
-    ? createInMemoryUnitOfWork(createMemorySeed())
+    ? createInMemoryUnitOfWork(await createMemorySeed())
     : createKnexUnitOfWork(db);
 
 const app = createApp(unitOfWork);

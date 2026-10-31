@@ -1,5 +1,14 @@
+import { hashPassword } from "../../modules/auth/password.js";
+
 export async function seed(knex) {
-    await knex.raw("TRUNCATE reservations, rooms, buildings RESTART IDENTITY CASCADE");
+    await knex.raw("TRUNCATE reservations, rooms, buildings, users RESTART IDENTITY CASCADE");
+
+    await knex("users").insert({
+        email: "admin@example.com",
+        password_hash: await hashPassword("admin-password-123"),
+        role: "ADMIN",
+        created_at: "2026-10-01T08:00:00Z"
+    });
 
     await knex("buildings").insert([
         { name: "Budynek A", address: "ul. Warszawska 24, Kraków", created_at: "2026-10-01T08:00:00Z" },

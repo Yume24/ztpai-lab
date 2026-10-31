@@ -1,4 +1,4 @@
-import { db } from "../db/knex.js";
+import { db } from "../src/db/knex.js";
 
 const API_URL = process.env.API_URL ?? "http://localhost:8000";
 const ROOM_ID = Number(process.env.ROOM_ID ?? 1);

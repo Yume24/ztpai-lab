@@ -2,6 +2,7 @@ import express from "express";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { authenticate } from "./middleware/authenticate.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { createAuthController } from "./modules/auth/auth.controller.js";
 import { createAuthRouter } from "./modules/auth/auth.routes.js";
@@ -15,18 +16,20 @@ import { ReservationsService } from "./modules/reservations/reservations.service
 import { createReservationsController } from "./modules/reservations/reservations.controller.js";
 import { createReservationsRouter } from "./modules/reservations/reservations.routes.js";
 
-export function createApp({ runInTransaction, now }) {
+export function createApp({ runInTransaction, now, jwtSecret, jwtExpiresIn }) {
     const app = express();
 
     app.use(requestLogger);
     app.use(express.json());
 
-    const authService = new AuthService({ runInTransaction });
+    const requireAuth = authenticate(jwtSecret);
+
+    const authService = new AuthService({ runInTransaction, jwtSecret, jwtExpiresIn });
     const buildingsService = new BuildingsService({ runInTransaction });
     const roomsService = new RoomsService({ runInTransaction });
     const reservationsService = new ReservationsService({ runInTransaction, now });
 
-    app.use("/api/auth", createAuthRouter(createAuthController(authService)));
+    app.use("/api/auth", createAuthRouter(createAuthController(authService), requireAuth));
     app.use("/api/buildings", createBuildingsRouter(createBuildingsController(buildingsService)));
     app.use("/api/rooms", createRoomsRouter(createRoomsController(roomsService)));
     app.use("/api/reservations", createReservationsRouter(createReservationsController(reservationsService)));

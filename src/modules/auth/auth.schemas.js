@@ -8,3 +8,8 @@ export const registerBody = z.strictObject({
         .min(10, "Password must have at least 10 characters")
         .max(72, "Password can have at most 72 characters")
 });
+
+export const loginBody = z.strictObject({
+    email,
+    password: z.string().min(1)
+});

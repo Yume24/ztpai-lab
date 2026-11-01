@@ -14,6 +14,12 @@ export class ValidationError extends AppError {
     }
 }
 
+export class UnauthorizedError extends AppError {
+    constructor(message = "Authentication required", code = "UNAUTHORIZED") {
+        super(message, 401, code);
+    }
+}
+
 export class NotFoundError extends AppError {
     constructor(resource) {
         super(`${resource} not found`, 404, "NOT_FOUND");

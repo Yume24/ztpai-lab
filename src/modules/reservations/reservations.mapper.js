@@ -9,7 +9,7 @@ export function toReservationResponse(reservation) {
             name: room.name,
             building: { id: room.building.id, name: room.building.name }
         },
-        reservedBy: reservation.reservedBy,
+        user: { id: reservation.user.id, email: reservation.user.email },
         participants: reservation.participants,
         startTime: toIso(reservation.startTime),
         endTime: toIso(reservation.endTime),

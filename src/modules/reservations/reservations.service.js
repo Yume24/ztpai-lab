@@ -22,7 +22,7 @@ export class ReservationsService {
         this.now = now;
     }
 
-    async createReservation({ roomId, reservedBy, participants, startTime, endTime }) {
+    async createReservation({ roomId, participants, startTime, endTime }, currentUser) {
         const range = { startTime: new Date(startTime), endTime: new Date(endTime) };
         const duration = range.endTime.getTime() - range.startTime.getTime();
 
@@ -53,7 +53,7 @@ export class ReservationsService {
 
             return reservationsRepository.createReservation({
                 roomId,
-                reservedBy,
+                userId: currentUser.id,
                 participants,
                 ...range,
                 status: ReservationStatus.CONFIRMED,

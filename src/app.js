@@ -30,9 +30,9 @@ export function createApp({ runInTransaction, now, jwtSecret, jwtExpiresIn }) {
     const reservationsService = new ReservationsService({ runInTransaction, now });
 
     app.use("/api/auth", createAuthRouter(createAuthController(authService), requireAuth));
-    app.use("/api/buildings", createBuildingsRouter(createBuildingsController(buildingsService)));
-    app.use("/api/rooms", createRoomsRouter(createRoomsController(roomsService)));
-    app.use("/api/reservations", createReservationsRouter(createReservationsController(reservationsService)));
+    app.use("/api/buildings", requireAuth, createBuildingsRouter(createBuildingsController(buildingsService)));
+    app.use("/api/rooms", requireAuth, createRoomsRouter(createRoomsController(roomsService)));
+    app.use("/api/reservations", requireAuth, createReservationsRouter(createReservationsController(reservationsService)));
 
     app.use(notFound);
     app.use(errorHandler);

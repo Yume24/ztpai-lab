@@ -23,7 +23,6 @@ export const listReservationsQuery = z.object({
 
 export const createReservationBody = z.strictObject({
     roomId: positiveInt,
-    reservedBy: z.string().trim().min(3).max(100),
     participants: positiveInt,
     startTime: isoDateTime,
     endTime: isoDateTime

@@ -1,0 +1,184 @@
+@baseUrl = http://localhost:8000/api
+@adminToken = {{loginAdmin.response.body.accessToken}}
+@ownerToken = {{loginOwner.response.body.accessToken}}
+@otherToken = {{loginOther.response.body.accessToken}}
+
+### Logowanie ADMIN
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "email": "admin@example.com", "password": "admin-password-123" }
+
+### Logowanie USER - właściciel rezerwacji 1
+# @name loginOwner
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "email": "jan.kowalski@example.com", "password": "user-password-123" }
+
+### Logowanie USER - obcy dla rezerwacji 1
+# @name loginOther
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "email": "anna.nowak@example.com", "password": "user-password-123" }
+
+
+### GET /api/auth/me - brak tokenu
+GET {{baseUrl}}/auth/me
+
+### GET /api/auth/me - USER
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{ownerToken}}
+
+### GET /api/auth/me - ADMIN
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{adminToken}}
+
+
+### GET /api/buildings - brak tokenu
+GET {{baseUrl}}/buildings
+
+### GET /api/buildings - USER
+GET {{baseUrl}}/buildings
+Authorization: Bearer {{ownerToken}}
+
+### GET /api/buildings - ADMIN
+GET {{baseUrl}}/buildings
+Authorization: Bearer {{adminToken}}
+
+
+### POST /api/buildings - brak tokenu
+POST {{baseUrl}}/buildings
+Content-Type: application/json
+
+{ "name": "Budynek D", "address": "ul. Reymonta 7, Kraków" }
+
+### POST /api/buildings - USER
+POST {{baseUrl}}/buildings
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{ "name": "Budynek D", "address": "ul. Reymonta 7, Kraków" }
+
+### POST /api/buildings - ADMIN
+POST {{baseUrl}}/buildings
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "name": "Budynek D", "address": "ul. Reymonta 7, Kraków" }
+
+
+### GET /api/rooms/1 - brak tokenu
+GET {{baseUrl}}/rooms/1
+
+### GET /api/rooms/1 - USER
+GET {{baseUrl}}/rooms/1
+Authorization: Bearer {{ownerToken}}
+
+### GET /api/rooms/1 - ADMIN
+GET {{baseUrl}}/rooms/1
+Authorization: Bearer {{adminToken}}
+
+
+### POST /api/rooms - brak tokenu
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{ "buildingId": 3, "name": "301", "capacity": 20 }
+
+### POST /api/rooms - USER
+POST {{baseUrl}}/rooms
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{ "buildingId": 3, "name": "301", "capacity": 20 }
+
+### POST /api/rooms - ADMIN
+POST {{baseUrl}}/rooms
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "buildingId": 3, "name": "301", "capacity": 20 }
+
+
+### GET /api/reservations - brak tokenu
+GET {{baseUrl}}/reservations
+
+### GET /api/reservations - USER właściciel
+GET {{baseUrl}}/reservations
+Authorization: Bearer {{ownerToken}}
+
+### GET /api/reservations - USER obcy
+GET {{baseUrl}}/reservations
+Authorization: Bearer {{otherToken}}
+
+### GET /api/reservations - ADMIN
+GET {{baseUrl}}/reservations
+Authorization: Bearer {{adminToken}}
+
+
+### GET /api/reservations?userId=3 - brak tokenu
+GET {{baseUrl}}/reservations?userId=3
+
+### GET /api/reservations?userId=3 - USER
+GET {{baseUrl}}/reservations?userId=3
+Authorization: Bearer {{ownerToken}}
+
+### GET /api/reservations?userId=3 - ADMIN
+GET {{baseUrl}}/reservations?userId=3
+Authorization: Bearer {{adminToken}}
+
+
+### POST /api/reservations - brak tokenu
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{ "roomId": 3, "participants": 10, "startTime": "2026-12-01T10:00:00Z", "endTime": "2026-12-01T11:00:00Z" }
+
+### POST /api/reservations - USER
+POST {{baseUrl}}/reservations
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{ "roomId": 3, "participants": 10, "startTime": "2026-12-01T10:00:00Z", "endTime": "2026-12-01T11:00:00Z" }
+
+### POST /api/reservations - ADMIN
+POST {{baseUrl}}/reservations
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "roomId": 3, "participants": 10, "startTime": "2026-12-02T10:00:00Z", "endTime": "2026-12-02T11:00:00Z" }
+
+
+### GET /api/reservations/1 - brak tokenu
+GET {{baseUrl}}/reservations/1
+
+### GET /api/reservations/1 - USER właściciel
+GET {{baseUrl}}/reservations/1
+Authorization: Bearer {{ownerToken}}
+
+### GET /api/reservations/1 - USER obcy
+GET {{baseUrl}}/reservations/1
+Authorization: Bearer {{otherToken}}
+
+### GET /api/reservations/1 - ADMIN
+GET {{baseUrl}}/reservations/1
+Authorization: Bearer {{adminToken}}
+
+
+### PATCH /api/reservations/1/cancel - brak tokenu
+PATCH {{baseUrl}}/reservations/1/cancel
+
+### PATCH /api/reservations/1/cancel - USER obcy
+PATCH {{baseUrl}}/reservations/1/cancel
+Authorization: Bearer {{otherToken}}
+
+### PATCH /api/reservations/1/cancel - USER właściciel
+PATCH {{baseUrl}}/reservations/1/cancel
+Authorization: Bearer {{ownerToken}}
+
+### PATCH /api/reservations/3/cancel - ADMIN (rezerwacja innego użytkownika)
+PATCH {{baseUrl}}/reservations/3/cancel
+Authorization: Bearer {{adminToken}}

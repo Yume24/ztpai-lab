@@ -10,6 +10,7 @@ export const reservationIdParams = z.object({
 export const listReservationsQuery = z.object({
     roomId: idParam.optional(),
     buildingId: idParam.optional(),
+    userId: idParam.optional(),
     status: z.enum(["CONFIRMED", "CANCELLED"]).optional(),
     from: isoDateTime.optional(),
     to: isoDateTime.optional(),

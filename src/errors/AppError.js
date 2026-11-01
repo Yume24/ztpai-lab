@@ -20,6 +20,12 @@ export class UnauthorizedError extends AppError {
     }
 }
 
+export class ForbiddenError extends AppError {
+    constructor(message = "Insufficient permissions") {
+        super(message, 403, "FORBIDDEN");
+    }
+}
+
 export class NotFoundError extends AppError {
     constructor(resource) {
         super(`${resource} not found`, 404, "NOT_FOUND");

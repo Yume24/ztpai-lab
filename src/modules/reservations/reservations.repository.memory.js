@@ -18,10 +18,11 @@ export class InMemoryReservationsRepository {
         };
     }
 
-    #matching({ roomId, buildingId, status, from, to } = {}) {
+    #matching({ roomId, buildingId, userId, status, from, to } = {}) {
         return [...this.store.reservations.values()].filter(r =>
             (roomId === undefined || r.roomId === roomId) &&
             (buildingId === undefined || this.store.rooms.get(r.roomId)?.buildingId === buildingId) &&
+            (userId === undefined || r.userId === userId) &&
             (status === undefined || r.status === status) &&
             (to === undefined || time(r.startTime) < time(to)) &&
             (from === undefined || time(r.endTime) > time(from))

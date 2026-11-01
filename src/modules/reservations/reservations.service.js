@@ -1,4 +1,5 @@
-import { ConflictError, NotFoundError, ValidationError } from "../../errors/AppError.js";
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../../errors/AppError.js";
+import { Role } from "../users/users.roles.js";
 
 const ReservationStatus = Object.freeze({ CONFIRMED: "CONFIRMED", CANCELLED: "CANCELLED" });
 
@@ -14,6 +15,10 @@ const bodyError = (field, message) => new ValidationError([{ location: "body", f
 
 function overlaps(a, b) {
     return a.startTime.getTime() < b.endTime.getTime() && b.startTime.getTime() < a.endTime.getTime();
+}
+
+function canAccess(reservation, currentUser) {
+    return currentUser.role === Role.ADMIN || reservation.userId === currentUser.id;
 }
 
 export class ReservationsService {
@@ -64,9 +69,15 @@ export class ReservationsService {
         });
     }
 
-    async listReservations(query) {
+    async listReservations(query, currentUser) {
+        const isAdmin = currentUser.role === Role.ADMIN;
+        if (!isAdmin && query.userId !== undefined) {
+            throw new ForbiddenError("Only ADMIN can filter reservations by userId");
+        }
+        const filters = isAdmin ? query : { ...query, userId: currentUser.id };
+
         return this.runInTransaction(async ({ reservationsRepository }) => {
-            const { items, total } = await reservationsRepository.listReservations(query);
+            const { items, total } = await reservationsRepository.listReservations(filters);
             return {
                 items,
                 meta: { page: query.page, limit: query.limit, total, totalPages: Math.ceil(total / query.limit) }
@@ -74,18 +85,18 @@ export class ReservationsService {
         });
     }
 
-    async getReservation(id) {
+    async getReservation(id, currentUser) {
         return this.runInTransaction(async ({ reservationsRepository }) => {
             const reservation = await reservationsRepository.getReservationById(id);
-            if (!reservation) throw new NotFoundError("Reservation");
+            if (!reservation || !canAccess(reservation, currentUser)) throw new NotFoundError("Reservation");
             return reservation;
         });
     }
 
-    async cancelReservation(id) {
+    async cancelReservation(id, currentUser) {
         return this.runInTransaction(async ({ reservationsRepository }) => {
             const reservation = await reservationsRepository.getReservationById(id);
-            if (!reservation) throw new NotFoundError("Reservation");
+            if (!reservation || !canAccess(reservation, currentUser)) throw new NotFoundError("Reservation");
 
             if (reservation.status === ReservationStatus.CANCELLED) return reservation;
 

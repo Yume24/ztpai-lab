@@ -44,9 +44,10 @@ function toReservation(row) {
     };
 }
 
-function applyFilters(query, { roomId, buildingId, status, from, to }) {
+function applyFilters(query, { roomId, buildingId, userId, status, from, to }) {
     if (roomId !== undefined) query.where("res.room_id", roomId);
     if (buildingId !== undefined) query.where("r.building_id", buildingId);
+    if (userId !== undefined) query.where("res.user_id", userId);
     if (status !== undefined) query.where("res.status", status);
     if (to !== undefined) query.where("res.start_time", "<", to);
     if (from !== undefined) query.where("res.end_time", ">", from);

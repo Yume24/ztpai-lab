@@ -1,7 +1,8 @@
+import { config } from "../src/config/index.js";
 import { db } from "../src/db/knex.js";
 
-const API_URL = process.env.API_URL ?? "http://localhost:8000";
-const ROOM_ID = Number(process.env.ROOM_ID ?? 1);
+const API_URL = `http://localhost:${config.PORT}`;
+const ROOM_ID = 1;
 const REQUESTS = 10;
 const CREDENTIALS = { email: "jan.kowalski@example.com", password: "user-password-123" };
 

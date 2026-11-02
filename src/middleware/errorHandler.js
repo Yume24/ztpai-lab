@@ -8,6 +8,13 @@ const PG_ERRORS = {
     "40P01": { status: 409, code: "CONCURRENT_CONFLICT", message: "Request conflicted with a concurrent operation" }
 };
 
+const BODY_ERRORS = {
+    "entity.parse.failed": { code: "INVALID_JSON", message: "Request body is not valid JSON" },
+    "entity.too.large": { code: "PAYLOAD_TOO_LARGE", message: "Request body is too large" },
+    "charset.unsupported": { code: "UNSUPPORTED_MEDIA_TYPE", message: "Unsupported request body charset" },
+    "encoding.unsupported": { code: "UNSUPPORTED_MEDIA_TYPE", message: "Unsupported request body encoding" }
+};
+
 const PG_CONSTRAINTS = {
     users_email_unique: { status: 409, code: "EMAIL_TAKEN", message: "Email already registered" }
 };
@@ -30,10 +37,9 @@ export function errorHandler(err, req, res, next) {
         });
     }
 
-    if (err.type === "entity.parse.failed") {
-        return res.status(400).json({
-            error: { code: "INVALID_JSON", message: "Request body is not valid JSON", requestId: req.id }
-        });
+    if (Object.hasOwn(BODY_ERRORS, err.type)) {
+        const { code, message } = BODY_ERRORS[err.type];
+        return res.status(err.status).json({ error: { code, message, requestId: req.id } });
     }
 
     const pgError = findPgError(err);

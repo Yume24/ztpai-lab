@@ -16,6 +16,10 @@ const queryParam = (name, description, paramSchema) => ({ name, in: "query", req
 const invalidInput = error("Validation error: invalid body, path or query parameters, unknown fields or malformed JSON");
 const unauthorized = error("Missing or malformed Authorization header, invalid token or expired token (TOKEN_EXPIRED)");
 const adminOnly = error("Authenticated user is not ADMIN");
+const bodyErrors = {
+    413: error("Request body is larger than 100 kB (PAYLOAD_TOO_LARGE)"),
+    415: error("Unsupported request body charset or encoding (UNSUPPORTED_MEDIA_TYPE)")
+};
 
 export const openapiDocument = {
     openapi: "3.0.3",
@@ -202,7 +206,8 @@ export const openapiDocument = {
                 responses: {
                     201: success("Created user (role is always USER)", schema("User")),
                     400: invalidInput,
-                    409: error("Email already registered (EMAIL_TAKEN)")
+                    409: error("Email already registered (EMAIL_TAKEN)"),
+                    ...bodyErrors
                 }
             }
         },
@@ -215,7 +220,8 @@ export const openapiDocument = {
                 responses: {
                     200: success("Access token", schema("LoginResponse")),
                     400: invalidInput,
-                    401: error("Invalid email or password (INVALID_CREDENTIALS)")
+                    401: error("Invalid email or password (INVALID_CREDENTIALS)"),
+                    ...bodyErrors
                 }
             }
         },
@@ -248,7 +254,8 @@ export const openapiDocument = {
                     400: invalidInput,
                     401: unauthorized,
                     403: adminOnly,
-                    409: error("Building with this name already exists (UNIQUE_VIOLATION)")
+                    409: error("Building with this name already exists (UNIQUE_VIOLATION)"),
+                    ...bodyErrors
                 }
             }
         },
@@ -297,7 +304,8 @@ export const openapiDocument = {
                     401: unauthorized,
                     403: adminOnly,
                     404: error("Building not found"),
-                    409: error("Room with this name already exists in the building (UNIQUE_VIOLATION)")
+                    409: error("Room with this name already exists in the building (UNIQUE_VIOLATION)"),
+                    ...bodyErrors
                 }
             }
         },
@@ -349,7 +357,8 @@ export const openapiDocument = {
                     400: error("Validation error, e.g. userId or reservedBy in body, start in the past, duration outside 15 min - 8 h"),
                     401: unauthorized,
                     404: error("Room not found"),
-                    409: error("Room capacity exceeded (CONFLICT), room already booked (ROOM_ALREADY_BOOKED), concurrent conflict (CONCURRENT_CONFLICT) or user from the token no longer exists (FOREIGN_KEY_VIOLATION)")
+                    409: error("Room capacity exceeded (CONFLICT), room already booked (ROOM_ALREADY_BOOKED), concurrent conflict (CONCURRENT_CONFLICT) or user from the token no longer exists (FOREIGN_KEY_VIOLATION)"),
+                    ...bodyErrors
                 }
             }
         },

@@ -1,4 +1,6 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import { openapiDocument } from "./docs/openapi.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -29,6 +31,9 @@ export function createApp({ runInTransaction, now, jwtSecret, jwtExpiresIn }) {
     const roomsService = new RoomsService({ runInTransaction });
     const reservationsService = new ReservationsService({ runInTransaction, now });
 
+    app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument, {
+        swaggerOptions: { persistAuthorization: true }
+    }));
     app.use("/api/auth", createAuthRouter(createAuthController(authService), requireAuth));
     app.use("/api/buildings", requireAuth, createBuildingsRouter(createBuildingsController(buildingsService)));
     app.use("/api/rooms", requireAuth, createRoomsRouter(createRoomsController(roomsService)));

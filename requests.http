@@ -184,7 +184,7 @@ PATCH {{baseUrl}}/reservations/3/cancel
 Authorization: Bearer {{adminToken}}
 
 
-### PATCH /api/reservations/5/cancel - ADMIN, rezerwacja już trwa
+### PATCH /api/reservations/5/cancel - ADMIN, rezerwacja już rozpoczęta
 PATCH {{baseUrl}}/reservations/5/cancel
 Authorization: Bearer {{adminToken}}
 

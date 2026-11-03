@@ -179,6 +179,25 @@ Authorization: Bearer {{otherToken}}
 PATCH {{baseUrl}}/reservations/1/cancel
 Authorization: Bearer {{ownerToken}}
 
-### PATCH /api/reservations/3/cancel - ADMIN (rezerwacja innego użytkownika)
+### PATCH /api/reservations/3/cancel - ADMIN
 PATCH {{baseUrl}}/reservations/3/cancel
 Authorization: Bearer {{adminToken}}
+
+
+### PATCH /api/reservations/5/cancel - ADMIN, rezerwacja już trwa
+PATCH {{baseUrl}}/reservations/5/cancel
+Authorization: Bearer {{adminToken}}
+
+### POST /api/reservations - ADMIN, 999 osób w sali 1
+POST {{baseUrl}}/reservations
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "roomId": 1, "participants": 999, "startTime": "2026-12-05T10:00:00Z", "endTime": "2026-12-05T11:00:00Z" }
+
+### POST /api/reservations - ADMIN, termin rezerwacji 2
+POST {{baseUrl}}/reservations
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "roomId": 1, "participants": 5, "startTime": "2026-11-10T12:00:00Z", "endTime": "2026-11-10T13:00:00Z" }

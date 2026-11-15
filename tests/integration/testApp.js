@@ -22,7 +22,7 @@ let passwordHash;
 
 // Każdy test zaczyna od tego samego stanu: ADMIN (id 1), jan (id 2), anna (id 3), sale 1 i 2.
 export async function resetDatabase() {
-    await db.raw("TRUNCATE reservations, rooms, buildings, users RESTART IDENTITY CASCADE");
+    await db.raw("TRUNCATE audit_log, reservations, rooms, buildings, users RESTART IDENTITY CASCADE");
 
     passwordHash ??= await hashPassword(PASSWORD);
     await db("users").insert([

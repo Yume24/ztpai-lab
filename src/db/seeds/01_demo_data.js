@@ -9,7 +9,7 @@ const USER_EMAILS = [
 ];
 
 export async function seed(knex) {
-    await knex.raw("TRUNCATE reservations, rooms, buildings, users RESTART IDENTITY CASCADE");
+    await knex.raw("TRUNCATE audit_log, reservations, rooms, buildings, users RESTART IDENTITY CASCADE");
 
     await knex("users").insert({
         email: "admin@example.com",

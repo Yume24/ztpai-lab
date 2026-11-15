@@ -2,13 +2,15 @@ import { KnexBuildingsRepository } from "../modules/buildings/buildings.reposito
 import { KnexRoomsRepository } from "../modules/rooms/rooms.repository.knex.js";
 import { KnexReservationsRepository } from "../modules/reservations/reservations.repository.knex.js";
 import { KnexUsersRepository } from "../modules/users/users.repository.knex.js";
+import { KnexAuditLogRepository } from "../modules/audit/audit.repository.knex.js";
 
 function createKnexRepositories(db) {
     return {
         buildingsRepository: new KnexBuildingsRepository(db),
         roomsRepository: new KnexRoomsRepository(db),
         reservationsRepository: new KnexReservationsRepository(db),
-        usersRepository: new KnexUsersRepository(db)
+        usersRepository: new KnexUsersRepository(db),
+        auditLogRepository: new KnexAuditLogRepository(db)
     };
 }
 

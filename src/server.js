@@ -4,6 +4,9 @@ import { db } from "./db/knex.js";
 import { createKnexUnitOfWork } from "./persistence/unitOfWork.knex.js";
 import { createInMemoryUnitOfWork } from "./persistence/unitOfWork.memory.js";
 import { createMemorySeed } from "./persistence/memory.seed.js";
+import { createEventBus } from "./events/eventBus.js";
+import { registerAuditListeners } from "./events/auditListeners.js";
+import { registerNotificationListeners } from "./events/notificationListeners.js";
 
 const SHUTDOWN_TIMEOUT_MS = 8000;
 
@@ -11,7 +14,11 @@ const unitOfWork = config.STORAGE === "memory"
     ? createInMemoryUnitOfWork(await createMemorySeed())
     : createKnexUnitOfWork(db);
 
-const app = createApp({ ...unitOfWork, jwtSecret: config.JWT_SECRET, jwtExpiresIn: config.JWT_EXPIRES_IN });
+const eventBus = createEventBus();
+registerAuditListeners(eventBus, unitOfWork);
+registerNotificationListeners(eventBus, unitOfWork);
+
+const app = createApp({ ...unitOfWork, eventBus, jwtSecret: config.JWT_SECRET, jwtExpiresIn: config.JWT_EXPIRES_IN });
 const server = app.listen(config.PORT, () => console.log(`Server listening on port ${config.PORT} (storage: ${config.STORAGE})`));
 
 let shuttingDown = false;
@@ -30,6 +37,8 @@ function shutdown(signal) {
     // close() przestaje przyjmować nowe połączenia i czeka na zakończenie trwających requestów.
     server.close(async err => {
         try {
+            // Listenery mogą jeszcze zapisywać audit log - pulę zamykamy dopiero po nich.
+            await eventBus.drain();
             await db.destroy();
             console.log("HTTP server closed, database connections closed");
             process.exit(err ? 1 : 0);

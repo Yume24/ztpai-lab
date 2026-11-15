@@ -201,3 +201,39 @@ Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 { "roomId": 1, "participants": 5, "startTime": "2026-11-10T12:00:00Z", "endTime": "2026-11-10T13:00:00Z" }
+
+
+### Scenariusz audit logu (po seedzie): 1. USER tworzy rezerwację
+# @name auditCreate
+POST {{baseUrl}}/reservations
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{ "roomId": 3, "participants": 10, "startTime": "2026-12-03T10:00:00Z", "endTime": "2026-12-03T11:00:00Z" }
+
+### 2. Nieudana próba kolizji - 409, bez eventu
+POST {{baseUrl}}/reservations
+Authorization: Bearer {{otherToken}}
+Content-Type: application/json
+
+{ "roomId": 3, "participants": 10, "startTime": "2026-12-03T10:30:00Z", "endTime": "2026-12-03T11:30:00Z" }
+
+### 3. ADMIN anuluje cudzą rezerwację - event reservation.cancelled i [notification] w logach
+PATCH {{baseUrl}}/reservations/{{auditCreate.response.body.id}}/cancel
+Authorization: Bearer {{adminToken}}
+
+### 4. Ponowne anulowanie - 200 bez zmian, bez eventu
+PATCH {{baseUrl}}/reservations/{{auditCreate.response.body.id}}/cancel
+Authorization: Bearer {{adminToken}}
+
+### GET /api/admin/audit-log - ADMIN
+GET {{baseUrl}}/admin/audit-log
+Authorization: Bearer {{adminToken}}
+
+### GET /api/admin/audit-log?eventType=reservation.cancelled - ADMIN
+GET {{baseUrl}}/admin/audit-log?eventType=reservation.cancelled&limit=10
+Authorization: Bearer {{adminToken}}
+
+### GET /api/admin/audit-log - USER
+GET {{baseUrl}}/admin/audit-log
+Authorization: Bearer {{ownerToken}}

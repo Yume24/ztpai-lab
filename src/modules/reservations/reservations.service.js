@@ -1,5 +1,7 @@
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../../errors/AppError.js";
+import { noopEventBus } from "../../events/eventBus.js";
 import { Role } from "../users/users.roles.js";
+import { ReservationEvents } from "./reservations.events.js";
 import { overlaps } from "./reservations.rules.js";
 
 const ReservationStatus = Object.freeze({ CONFIRMED: "CONFIRMED", CANCELLED: "CANCELLED" });
@@ -13,15 +15,17 @@ const MIN_DURATION_MS = 15 * 60 * 1000;
 const MAX_DURATION_MS = 8 * 60 * 60 * 1000;
 
 const bodyError = (field, message) => new ValidationError([{ location: "body", field, message }]);
+const toIso = value => new Date(value).toISOString();
 
 function canAccess(reservation, currentUser) {
     return currentUser.role === Role.ADMIN || reservation.userId === currentUser.id;
 }
 
 export class ReservationsService {
-    constructor({ runInTransaction, now = () => new Date() }) {
+    constructor({ runInTransaction, now = () => new Date(), eventBus = noopEventBus }) {
         this.runInTransaction = runInTransaction;
         this.now = now;
+        this.eventBus = eventBus;
     }
 
     async createReservation({ roomId, participants, startTime, endTime }, currentUser) {
@@ -35,7 +39,7 @@ export class ReservationsService {
             throw bodyError("startTime", "startTime must not be in the past");
         }
 
-        return this.runInTransaction(async ({ roomsRepository, reservationsRepository }) => {
+        const reservation = await this.runInTransaction(async ({ roomsRepository, reservationsRepository }) => {
             const room = await roomsRepository.getRoomById(roomId);
             if (!room) throw new NotFoundError("Room");
 
@@ -64,6 +68,16 @@ export class ReservationsService {
                 internalNote: "created via API v2"
             });
         });
+
+        // runInTransaction kończy się po COMMIT. Gdy operacja się nie uda, wyjątek przerywa metodę przed publish.
+        this.eventBus.publish(ReservationEvents.CREATED, {
+            reservationId: reservation.id,
+            roomId: reservation.roomId,
+            userId: reservation.userId,
+            startTime: toIso(reservation.startTime),
+            endTime: toIso(reservation.endTime)
+        });
+        return reservation;
     }
 
     async listReservations(query, currentUser) {
@@ -91,11 +105,13 @@ export class ReservationsService {
     }
 
     async cancelReservation(id, currentUser) {
-        return this.runInTransaction(async ({ reservationsRepository }) => {
+        const { reservation, cancelled } = await this.runInTransaction(async ({ reservationsRepository }) => {
+            // Blokada wiersza: dwa równoległe anulowania nie zmienią statusu ani nie opublikują eventu dwa razy.
+            await reservationsRepository.lockReservationById(id);
             const reservation = await reservationsRepository.getReservationById(id);
             if (!reservation || !canAccess(reservation, currentUser)) throw new NotFoundError("Reservation");
 
-            if (reservation.status === ReservationStatus.CANCELLED) return reservation;
+            if (reservation.status === ReservationStatus.CANCELLED) return { reservation, cancelled: false };
 
             const now = this.now();
             if (reservation.startTime.getTime() <= now.getTime()) {
@@ -106,10 +122,22 @@ export class ReservationsService {
                 throw new ConflictError(`Cannot change status from ${reservation.status} to ${ReservationStatus.CANCELLED}`);
             }
 
-            return reservationsRepository.updateReservation(id, {
+            const updated = await reservationsRepository.updateReservation(id, {
                 status: ReservationStatus.CANCELLED,
                 cancelledAt: now
             });
+            return { reservation: updated, cancelled: true };
         });
+
+        // Ponowne anulowanie jest idempotentne: zwraca rezerwację bez zmian i nie publikuje eventu.
+        if (cancelled) {
+            this.eventBus.publish(ReservationEvents.CANCELLED, {
+                reservationId: reservation.id,
+                roomId: reservation.roomId,
+                userId: reservation.userId,
+                cancelledBy: currentUser.id
+            });
+        }
+        return reservation;
     }
 }

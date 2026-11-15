@@ -5,6 +5,7 @@ import { requestLogger } from "./middleware/requestLogger.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { authenticate } from "./middleware/authenticate.js";
+import { noopEventBus } from "./events/eventBus.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { createAuthController } from "./modules/auth/auth.controller.js";
 import { createAuthRouter } from "./modules/auth/auth.routes.js";
@@ -18,7 +19,7 @@ import { ReservationsService } from "./modules/reservations/reservations.service
 import { createReservationsController } from "./modules/reservations/reservations.controller.js";
 import { createReservationsRouter } from "./modules/reservations/reservations.routes.js";
 
-export function createApp({ runInTransaction, now, jwtSecret, jwtExpiresIn }) {
+export function createApp({ runInTransaction, now, jwtSecret, jwtExpiresIn, eventBus = noopEventBus }) {
     const app = express();
 
     app.use(requestLogger);
@@ -29,7 +30,7 @@ export function createApp({ runInTransaction, now, jwtSecret, jwtExpiresIn }) {
     const authService = new AuthService({ runInTransaction, jwtSecret, jwtExpiresIn });
     const buildingsService = new BuildingsService({ runInTransaction });
     const roomsService = new RoomsService({ runInTransaction });
-    const reservationsService = new ReservationsService({ runInTransaction, now });
+    const reservationsService = new ReservationsService({ runInTransaction, now, eventBus });
 
     app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument, {
         swaggerOptions: { persistAuthorization: true }

@@ -111,6 +111,10 @@ export class KnexReservationsRepository {
         return { items: rows.map(toReservation), total: Number(count) };
     }
 
+    async lockReservationById(id) {
+        await this.db("reservations").where({ id }).select("id").forUpdate();
+    }
+
     async updateReservation(id, changes) {
         await this.db("reservations").where({ id }).update(toColumns(changes));
         return this.getReservationById(id);

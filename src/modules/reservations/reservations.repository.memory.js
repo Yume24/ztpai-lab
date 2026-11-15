@@ -64,6 +64,8 @@ export class InMemoryReservationsRepository {
         };
     }
 
+    async lockReservationById() {}
+
     async updateReservation(id, changes) {
         return this.#withRelations(Object.assign(this.store.reservations.get(id), changes));
     }

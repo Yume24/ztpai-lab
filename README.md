@@ -1,5 +1,7 @@
 # Room Booking API
 
+[![CI](https://github.com/Yume24/ztpai-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/Yume24/ztpai-lab/actions/workflows/ci.yml)
+
 REST API do rezerwacji sal: budynki, sale, rezerwacje z kontrolą nakładania się terminów, logowanie JWT i role `USER` / `ADMIN`. Express 5, PostgreSQL, Knex, Zod.
 
 ## Uruchomienie od zera (Docker)
@@ -54,9 +56,9 @@ docker compose down      # kontenery znikają, dane bazy zostają w volume
 docker compose down -v   # razem z danymi
 ```
 
-## Uruchomienie bez Dockera dla API
+## Uruchomienie API bez Dockera
 
-Wymagany Node.js 26 i pnpm (wersja z pola `packageManager`). Projekt używa pnpm, a `devEngines` w `package.json` sprawia, że `npm` i `npx` kończą się błędem `EBADDEVENGINES`.
+Wymagany Node.js 26 i pnpm (wersja z pola `packageManager`) oraz plik `.env` przygotowany jak wyżej. Projekt używa pnpm, a `devEngines` w `package.json` sprawia, że `npm` i `npx` kończą się błędem `EBADDEVENGINES`. W kontenerze `api` katalog `node_modules/.bin` jest w `PATH`, dlatego wystarcza samo `knex`.
 
 ```bash
 pnpm install
@@ -81,3 +83,7 @@ docker compose exec db createdb -U roombooking roombooking_test
 ```
 
 Inny adres bazy testowej można podać w zmiennej `TEST_DATABASE_URL`. Nazwa bazy musi kończyć się na `_test`.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu do `main` i każdym pull requeście uruchamia PostgreSQL jako `services`, instaluje zależności z `pnpm-lock.yaml`, wykonuje `pnpm test` i sprawdza, czy obraz Docker się buduje.

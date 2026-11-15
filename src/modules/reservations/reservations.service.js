@@ -42,7 +42,7 @@ export class ReservationsService {
             const room = await roomsRepository.getRoomById(roomId);
             if (!room) throw new NotFoundError("Room");
 
-            if (participants > room.capacity) throw new ConflictError("Room capacity exceeded");
+            if (participants > room.capacity) throw new ConflictError("Room capacity exceeded", "CAPACITY_EXCEEDED");
 
             await roomsRepository.lockRoomById(roomId);
 

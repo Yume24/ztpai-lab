@@ -357,7 +357,7 @@ export const openapiDocument = {
                     400: error("Validation error, e.g. userId or reservedBy in body, start in the past, duration outside 15 min - 8 h"),
                     401: unauthorized,
                     404: error("Room not found"),
-                    409: error("Room capacity exceeded (CONFLICT), room already booked (ROOM_ALREADY_BOOKED), concurrent conflict (CONCURRENT_CONFLICT) or user from the token no longer exists (FOREIGN_KEY_VIOLATION)"),
+                    409: error("Room capacity exceeded (CAPACITY_EXCEEDED), room already booked (ROOM_ALREADY_BOOKED), concurrent conflict (CONCURRENT_CONFLICT) or user from the token no longer exists (FOREIGN_KEY_VIOLATION)"),
                     ...bodyErrors
                 }
             }

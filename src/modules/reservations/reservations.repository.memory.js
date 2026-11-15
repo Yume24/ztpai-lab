@@ -1,4 +1,5 @@
 import { ConflictError } from "../../errors/AppError.js";
+import { overlaps } from "./reservations.rules.js";
 
 const time = value => new Date(value).getTime();
 
@@ -24,8 +25,7 @@ export class InMemoryReservationsRepository {
             (buildingId === undefined || this.store.rooms.get(r.roomId)?.buildingId === buildingId) &&
             (userId === undefined || r.userId === userId) &&
             (status === undefined || r.status === status) &&
-            (to === undefined || time(r.startTime) < time(to)) &&
-            (from === undefined || time(r.endTime) > time(from))
+            overlaps(r, { startTime: from ?? -Infinity, endTime: to ?? Infinity })
         );
     }
 

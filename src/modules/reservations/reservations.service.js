@@ -1,5 +1,6 @@
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../../errors/AppError.js";
 import { Role } from "../users/users.roles.js";
+import { overlaps } from "./reservations.rules.js";
 
 const ReservationStatus = Object.freeze({ CONFIRMED: "CONFIRMED", CANCELLED: "CANCELLED" });
 
@@ -12,10 +13,6 @@ const MIN_DURATION_MS = 15 * 60 * 1000;
 const MAX_DURATION_MS = 8 * 60 * 60 * 1000;
 
 const bodyError = (field, message) => new ValidationError([{ location: "body", field, message }]);
-
-function overlaps(a, b) {
-    return a.startTime.getTime() < b.endTime.getTime() && b.startTime.getTime() < a.endTime.getTime();
-}
 
 function canAccess(reservation, currentUser) {
     return currentUser.role === Role.ADMIN || reservation.userId === currentUser.id;

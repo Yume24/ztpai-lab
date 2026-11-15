@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, jest, test } from "@jest/globals";
 import request from "supertest";
-import { app, db, login, resetDatabase } from "./testApp.js";
+import { app, closeTestApp, db, login, resetDatabase } from "./testApp.js";
 
 const JAN_ID = 2;
 const ANNA_ID = 3;
@@ -20,9 +20,7 @@ beforeAll(async () => {
 
 beforeEach(resetDatabase);
 
-afterAll(async () => {
-    await db.destroy();
-});
+afterAll(closeTestApp);
 
 describe("Reservations API", () => {
     test("401 without token", async () => {

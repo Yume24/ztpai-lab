@@ -32,7 +32,8 @@ export const openapiDocument = {
         { name: "Auth" },
         { name: "Buildings" },
         { name: "Rooms" },
-        { name: "Reservations" }
+        { name: "Reservations" },
+        { name: "Admin" }
     ],
     security: [{ bearerAuth: [] }],
     components: {
@@ -183,15 +184,36 @@ export const openapiDocument = {
                 type: "object",
                 properties: {
                     data: { type: "array", items: schema("Reservation") },
-                    meta: {
+                    meta: schema("PageMeta")
+                }
+            },
+            PageMeta: {
+                type: "object",
+                properties: {
+                    page: { type: "integer", example: 1 },
+                    limit: { type: "integer", example: 20 },
+                    total: { type: "integer", example: 5 },
+                    totalPages: { type: "integer", example: 1 }
+                }
+            },
+            AuditLogEntry: {
+                type: "object",
+                properties: {
+                    id: { type: "integer", example: 2 },
+                    eventType: { type: "string", enum: ["reservation.created", "reservation.cancelled"] },
+                    payload: {
                         type: "object",
-                        properties: {
-                            page: { type: "integer", example: 1 },
-                            limit: { type: "integer", example: 20 },
-                            total: { type: "integer", example: 5 },
-                            totalPages: { type: "integer", example: 1 }
-                        }
-                    }
+                        description: "reservation.created: reservationId, roomId, userId, startTime, endTime; reservation.cancelled: reservationId, roomId, userId, cancelledBy",
+                        example: { reservationId: 6, roomId: 3, userId: 2, cancelledBy: 1 }
+                    },
+                    createdAt: { type: "string", format: "date-time" }
+                }
+            },
+            AuditLogList: {
+                type: "object",
+                properties: {
+                    data: { type: "array", items: schema("AuditLogEntry") },
+                    meta: schema("PageMeta")
                 }
             }
         }
@@ -386,6 +408,23 @@ export const openapiDocument = {
                     401: unauthorized,
                     404: error("Reservation not found or owned by another user"),
                     409: error("Reservation has already started (RESERVATION_ALREADY_STARTED)")
+                }
+            }
+        },
+        "/api/admin/audit-log": {
+            get: {
+                tags: ["Admin"],
+                summary: "List audit log entries, newest first (ADMIN)",
+                parameters: [
+                    queryParam("eventType", "Filter by event type", { type: "string", example: "reservation.cancelled" }),
+                    queryParam("page", "Page number", { type: "integer", minimum: 1, maximum: INT_MAX, default: 1 }),
+                    queryParam("limit", "Page size", { type: "integer", minimum: 1, maximum: 100, default: 20 })
+                ],
+                responses: {
+                    200: success("Page of audit log entries", schema("AuditLogList")),
+                    400: invalidInput,
+                    401: unauthorized,
+                    403: adminOnly
                 }
             }
         }

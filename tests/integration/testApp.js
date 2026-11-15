@@ -4,15 +4,25 @@ import { db } from "../../src/db/knex.js";
 import { createApp } from "../../src/app.js";
 import { createKnexUnitOfWork } from "../../src/persistence/unitOfWork.knex.js";
 import { hashPassword } from "../../src/modules/auth/password.js";
+import { createEventBus } from "../../src/events/eventBus.js";
+import { registerAuditListeners } from "../../src/events/auditListeners.js";
+import { registerNotificationListeners } from "../../src/events/notificationListeners.js";
 
 export { db };
 
 export const NOW = new Date("2026-12-01T08:00:00Z");
 export const PASSWORD = "password-123";
 
+const unitOfWork = createKnexUnitOfWork(db);
+
+export const eventBus = createEventBus();
+registerAuditListeners(eventBus, unitOfWork);
+registerNotificationListeners(eventBus, unitOfWork);
+
 // Aplikacja bez app.listen() - Supertest wysyła requesty bezpośrednio do Expressa.
 export const app = createApp({
-    ...createKnexUnitOfWork(db),
+    ...unitOfWork,
+    eventBus,
     now: () => NOW,
     jwtSecret: config.JWT_SECRET,
     jwtExpiresIn: config.JWT_EXPIRES_IN
@@ -22,6 +32,8 @@ let passwordHash;
 
 // Każdy test zaczyna od tego samego stanu: ADMIN (id 1), jan (id 2), anna (id 3), sale 1 i 2.
 export async function resetDatabase() {
+    // Listenery z poprzedniego testu mogą jeszcze zapisywać audit log.
+    await eventBus.drain();
     await db.raw("TRUNCATE audit_log, reservations, rooms, buildings, users RESTART IDENTITY CASCADE");
 
     passwordHash ??= await hashPassword(PASSWORD);
@@ -40,4 +52,9 @@ export async function resetDatabase() {
 export async function login(email) {
     const res = await request(app).post("/api/auth/login").send({ email, password: PASSWORD }).expect(200);
     return res.body.accessToken;
+}
+
+export async function closeTestApp() {
+    await eventBus.drain();
+    await db.destroy();
 }

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, jest, test } from "@jest/globals";
 import request from "supertest";
-import { app, db, resetDatabase } from "./testApp.js";
+import { app, closeTestApp, db, resetDatabase } from "./testApp.js";
 
 beforeAll(async () => {
     jest.spyOn(console, "log").mockImplementation(() => {});
@@ -9,9 +9,7 @@ beforeAll(async () => {
 
 beforeEach(resetDatabase);
 
-afterAll(async () => {
-    await db.destroy();
-});
+afterAll(closeTestApp);
 
 describe("Auth API", () => {
     test("register + login + GET /api/auth/me", async () => {
